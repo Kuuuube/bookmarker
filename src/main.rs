@@ -13,7 +13,16 @@ impl EventHandler for Handler {
         if !(reaction.emoji.unicode_eq("🔖") || reaction.emoji.unicode_eq("❌")) {
             return;
         }
-        match reaction.channel(&ctx).await.unwrap() {
+
+        let channel = match reaction.channel(&ctx).await {
+            Ok(ok) => ok,
+            Err(err) => {
+                println!("Failed to get channel {}", err);
+                return;
+            }
+        };
+
+        match channel {
             serenity::all::Channel::Guild(_) if reaction.emoji.unicode_eq("🔖") => {
                 match ctx
                     .http
@@ -21,15 +30,18 @@ impl EventHandler for Handler {
                     .await
                 {
                     Ok(message) => {
+                        let userid = match reaction.user_id {
+                            Some(some) => some,
+                            None => {
+                                println!("Failed to get userid");
+                                return;
+                            }
+                        };
                         let mut mirrored_embeds =
                             embeds::embeds_into_create_embeds(message.embeds.clone());
                         mirrored_embeds.insert(0, embeds::make_info_embed(message));
                         let builder = CreateMessage::new().add_embeds(mirrored_embeds);
-                        let _ = reaction
-                            .user_id
-                            .unwrap()
-                            .direct_message(&ctx, builder)
-                            .await;
+                        let _ = userid.direct_message(&ctx, builder).await;
                     }
                     Err(err) => println!("{}", err),
                 };
