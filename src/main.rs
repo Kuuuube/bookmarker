@@ -14,41 +14,37 @@ impl EventHandler for Handler {
             return;
         }
         match reaction.channel(&ctx).await.unwrap() {
-            serenity::all::Channel::Guild(_) => {
-                if reaction.emoji.unicode_eq("🔖") {
-                    match ctx
-                        .http
-                        .get_message(reaction.channel_id, reaction.message_id)
-                        .await
-                    {
-                        Ok(message) => {
-                            let mut mirrored_embeds =
-                                embeds::embeds_into_create_embeds(message.embeds.clone());
-                            mirrored_embeds.insert(0, embeds::make_info_embed(message));
-                            let builder = CreateMessage::new().add_embeds(mirrored_embeds);
-                            let _ = reaction
-                                .user_id
-                                .unwrap()
-                                .direct_message(&ctx, builder)
-                                .await;
-                        }
-                        Err(err) => println!("{}", err),
-                    };
-                }
+            serenity::all::Channel::Guild(_) if reaction.emoji.unicode_eq("🔖") => {
+                match ctx
+                    .http
+                    .get_message(reaction.channel_id, reaction.message_id)
+                    .await
+                {
+                    Ok(message) => {
+                        let mut mirrored_embeds =
+                            embeds::embeds_into_create_embeds(message.embeds.clone());
+                        mirrored_embeds.insert(0, embeds::make_info_embed(message));
+                        let builder = CreateMessage::new().add_embeds(mirrored_embeds);
+                        let _ = reaction
+                            .user_id
+                            .unwrap()
+                            .direct_message(&ctx, builder)
+                            .await;
+                    }
+                    Err(err) => println!("{}", err),
+                };
             }
-            serenity::all::Channel::Private(_) => {
-                if reaction.emoji.unicode_eq("❌") {
-                    match ctx
-                        .http
-                        .get_message(reaction.channel_id, reaction.message_id)
-                        .await
-                    {
-                        Ok(ok) => {
-                            let _ = ok.delete(&ctx).await;
-                        }
-                        Err(err) => println!("{}", err),
-                    };
-                }
+            serenity::all::Channel::Private(_) if reaction.emoji.unicode_eq("❌") => {
+                match ctx
+                    .http
+                    .get_message(reaction.channel_id, reaction.message_id)
+                    .await
+                {
+                    Ok(ok) => {
+                        let _ = ok.delete(&ctx).await;
+                    }
+                    Err(err) => println!("{}", err),
+                };
             }
             _ => (),
         }
