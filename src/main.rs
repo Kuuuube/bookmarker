@@ -4,6 +4,7 @@ use serenity::model::gateway::Ready;
 use serenity::prelude::*;
 
 mod embeds;
+mod logger;
 mod token_env;
 
 struct Handler;
@@ -18,6 +19,7 @@ impl EventHandler for Handler {
             Ok(ok) => ok,
             Err(err) => {
                 println!("Failed to get channel {}", err);
+                logger::log_error("Failed to get channel".to_string(), err.to_string());
                 return;
             }
         };
@@ -34,6 +36,10 @@ impl EventHandler for Handler {
                             Some(some) => some,
                             None => {
                                 println!("Failed to get userid");
+                                logger::log_error(
+                                    "Failed to get userid".to_string(),
+                                    "".to_string(),
+                                );
                                 return;
                             }
                         };
@@ -41,9 +47,23 @@ impl EventHandler for Handler {
                             embeds::embeds_into_create_embeds(message.embeds.clone());
                         mirrored_embeds.insert(0, embeds::make_info_embed(message));
                         let builder = CreateMessage::new().add_embeds(mirrored_embeds);
-                        let _ = userid.direct_message(&ctx, builder).await;
+                        match userid.direct_message(&ctx, builder).await {
+                            Ok(ok) => logger::log(format!("Sent DM message {:?}", ok)),
+                            Err(err) => {
+                                println!("Failed to send DM message {}", err);
+                                logger::log_error(
+                                    "Failed to send DM message".to_string(),
+                                    err.to_string(),
+                                );
+                                return;
+                            }
+                        };
                     }
-                    Err(err) => println!("{}", err),
+                    Err(err) => {
+                        println!("Failed to get message {}", err);
+                        logger::log_error("Failed to get message".to_string(), err.to_string());
+                        return;
+                    }
                 };
             }
             serenity::all::Channel::Private(_) if reaction.emoji.unicode_eq("❌") => {
@@ -52,10 +72,24 @@ impl EventHandler for Handler {
                     .get_message(reaction.channel_id, reaction.message_id)
                     .await
                 {
-                    Ok(ok) => {
-                        let _ = ok.delete(&ctx).await;
+                    Ok(message) => {
+                        match message.delete(&ctx).await {
+                            Ok(_) => logger::log(format!("Deleted DM message {:?}", message)),
+                            Err(err) => {
+                                println!("Failed to delete DM message {}", err);
+                                logger::log_error(
+                                    "Failed to delete DM message".to_string(),
+                                    err.to_string(),
+                                );
+                                return;
+                            }
+                        };
                     }
-                    Err(err) => println!("{}", err),
+                    Err(err) => {
+                        println!("Failed to get message {}", err);
+                        logger::log_error("Failed to get message".to_string(), err.to_string());
+                        return;
+                    }
                 };
             }
             _ => (),
