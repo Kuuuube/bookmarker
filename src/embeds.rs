@@ -11,7 +11,7 @@ pub fn make_info_embed(message: Message) -> CreateEmbed {
             message.timestamp.timestamp()
         ))
         .field("Link", message.link(), false)
-        .field("Content", message.content, false)
+        .field("Content", truncate_content(message.content), false)
         .footer(
             CreateEmbedFooter::new(format!("From {}", message.author.name))
                 .icon_url(message.author.avatar_url().unwrap_or_default()),
@@ -19,6 +19,12 @@ pub fn make_info_embed(message: Message) -> CreateEmbed {
         .timestamp(message.timestamp);
 
     return info_embed;
+}
+
+fn truncate_content(message_content: String) -> String {
+    let mut chars: Vec<char> = message_content.chars().collect();
+    chars.truncate(1024);
+    return chars.into_iter().collect();
 }
 
 pub fn embeds_into_create_embeds(embeds: Vec<Embed>) -> Vec<CreateEmbed> {
