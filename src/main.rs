@@ -18,12 +18,11 @@ impl EventHandler for Handler {
                         .get_message(reaction.channel_id, reaction.message_id)
                         .await
                     {
-                        Ok(ok) => {
-                            let mirrored_content = ok.content;
-                            let mirrored_embeds = embeds::embeds_into_create_embeds(ok.embeds);
-                            let builder = CreateMessage::new()
-                                .content(mirrored_content)
-                                .add_embeds(mirrored_embeds);
+                        Ok(message) => {
+                            let mut mirrored_embeds =
+                                embeds::embeds_into_create_embeds(message.embeds.clone());
+                            mirrored_embeds.insert(0, embeds::make_info_embed(message));
+                            let builder = CreateMessage::new().add_embeds(mirrored_embeds);
                             let _ = reaction
                                 .user_id
                                 .unwrap()

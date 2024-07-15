@@ -1,4 +1,25 @@
-use serenity::all::{CreateEmbed, Embed};
+use serenity::all::{CreateEmbed, CreateEmbedFooter, Embed, Message};
+
+pub fn make_info_embed(message: Message) -> CreateEmbed {
+    let info_embed = CreateEmbed::new()
+        .title(format!(
+            "New 🔖 saved from <#{}> channel",
+            message.channel_id
+        ))
+        .description(format!(
+            "You added this bookmark on <t:{}:f>",
+            message.timestamp.timestamp()
+        ))
+        .field("Link", message.link(), false)
+        .field("Content", message.content, false)
+        .footer(
+            CreateEmbedFooter::new(format!("From {}", message.author.name))
+                .icon_url(message.author.avatar_url().unwrap_or_default()),
+        )
+        .timestamp(message.timestamp);
+
+    return info_embed;
+}
 
 pub fn embeds_into_create_embeds(embeds: Vec<Embed>) -> Vec<CreateEmbed> {
     let mut create_embeds: Vec<CreateEmbed> = vec![];
