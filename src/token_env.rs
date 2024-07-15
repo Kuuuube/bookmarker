@@ -5,8 +5,8 @@ pub fn get_dotenv_token() -> Option<String> {
             Some(some) => some,
             None => continue,
         };
-        if key == "TOKEN" {
-            return Some(value.to_string());
+        if key.trim() == "TOKEN" {
+            return Some(value.trim().to_string());
         }
     }
 
