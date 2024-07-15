@@ -18,7 +18,6 @@ impl EventHandler for Handler {
         let channel = match reaction.channel(&ctx).await {
             Ok(ok) => ok,
             Err(err) => {
-                println!("Failed to get channel {}", err);
                 logger::log_error("Failed to get channel".to_string(), err.to_string());
                 return;
             }
@@ -35,7 +34,6 @@ impl EventHandler for Handler {
                         let userid = match reaction.user_id {
                             Some(some) => some,
                             None => {
-                                println!("Failed to get userid");
                                 logger::log_error(
                                     "Failed to get userid".to_string(),
                                     "".to_string(),
@@ -50,7 +48,6 @@ impl EventHandler for Handler {
                         match userid.direct_message(&ctx, builder).await {
                             Ok(ok) => logger::log(format!("Sent DM message {:?}", ok)),
                             Err(err) => {
-                                println!("Failed to send DM message {}", err);
                                 logger::log_error(
                                     "Failed to send DM message".to_string(),
                                     err.to_string(),
@@ -60,7 +57,6 @@ impl EventHandler for Handler {
                         };
                     }
                     Err(err) => {
-                        println!("Failed to get message {}", err);
                         logger::log_error("Failed to get message".to_string(), err.to_string());
                         return;
                     }
@@ -76,7 +72,6 @@ impl EventHandler for Handler {
                         match message.delete(&ctx).await {
                             Ok(_) => logger::log(format!("Deleted DM message {:?}", message)),
                             Err(err) => {
-                                println!("Failed to delete DM message {}", err);
                                 logger::log_error(
                                     "Failed to delete DM message".to_string(),
                                     err.to_string(),
@@ -86,7 +81,6 @@ impl EventHandler for Handler {
                         };
                     }
                     Err(err) => {
-                        println!("Failed to get message {}", err);
                         logger::log_error("Failed to get message".to_string(), err.to_string());
                         return;
                     }
@@ -97,7 +91,7 @@ impl EventHandler for Handler {
     }
 
     async fn ready(&self, _: Context, ready: Ready) {
-        println!("{} is connected!", ready.user.name);
+        logger::log(format!("{} is connected!", ready.user.name));
     }
 }
 
@@ -119,6 +113,6 @@ async fn main() {
         .expect("Err creating client");
 
     if let Err(why) = client.start().await {
-        println!("Client error: {why:?}");
+        logger::log(format!("Client error: {why:?}"));
     }
 }
