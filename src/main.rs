@@ -10,6 +10,9 @@ struct Handler;
 #[async_trait]
 impl EventHandler for Handler {
     async fn reaction_add(&self, ctx: Context, reaction: Reaction) {
+        if !reaction.emoji.unicode_eq("🔖") && !reaction.emoji.unicode_eq("❌") {
+            return;
+        }
         match reaction.channel(&ctx).await.unwrap() {
             serenity::all::Channel::Guild(_) => {
                 if reaction.emoji.unicode_eq("🔖") {
