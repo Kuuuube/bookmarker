@@ -19,7 +19,11 @@ pub fn log(message: String) {
 }
 
 pub fn log_error(message: String, error: String) {
-    let mut error_log_file = match OpenOptions::new().append(true).create(true).open("error_log") {
+    let mut error_log_file = match OpenOptions::new()
+        .append(true)
+        .create(true)
+        .open("error_log")
+    {
         Ok(ok) => ok,
         Err(err) => {
             println!("Failed to open error log file {}", err);
